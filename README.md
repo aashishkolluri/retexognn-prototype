@@ -1,5 +1,7 @@
 # Retexo
 
+A prototype implementation for RetexoGNNs---the first neural networks for communication-efficient training on fully-distributed graphs.
+
 We suggest using Anaconda for managing the environment
 ## Setting up conda
 ```
