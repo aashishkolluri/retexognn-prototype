@@ -11,17 +11,19 @@ conda activate [env_name]
 
 ## Quick Start: Training a single model
 
-### Run training for a single model 
-We have considered the following datasets and architecture \
-Datasets: \
+### Details of the datasets and architectures before training
+We have considered the following datasets and architectures
+
+#### Datasets
 &nbsp; Homophilous: cora, citeseer, pubmed, facebook_page, lastfm_asia \
 &nbsp; Heterophilous: wiki-cooc, roman-empire (We borrow these datasets from an anonymous ICLR [submission](https://openreview.net/forum?id=tJbbQfw-5wv))
 
-Architectures: \
-&nbsp;   MLP :mlp\
-&nbsp;   GNNs: gcn, graphSAGE, gat\
-&nbsp;   RetexoGNNs: mmlp_gcn, mmlp_sage, mmlp_gat
+#### Architectures
+&nbsp;   MLP\
+&nbsp;   GNNs: GCN, GraphSAGE, GAT\
+&nbsp;   RetexoGNNs: RetexoGCN, RetexoSAGE, RetexoGAT
 
+### Run training for a single model 
 To Train a gnn model on homophilous dataset 
 
 `python src/main.py --dataset [Dataset] --arch [Architecture] --sample_seed [Seed] --hidden_size [HID_s] --num_hidden [HID_n] train --lr [Lr] --dropout [Dropout] --num_epochs [Num_epochs]`
@@ -30,11 +32,11 @@ Here is an example to train a GCN on a homophilous dataset
 
 `python src/main.py --dataset cora --arch gcn --sample_seed 10 --hidden_size 256 --num_hidden 2 train --lr 0.01 --dropout 0.0 --num_epochs 400`
 
-To Train a Retexo model on homophilous dataset 
+To Train a Retexo model on homophilous dataset (use mmlp_[gnn]) 
 
 `python src/main.py --dataset [Dataset] --arch [Architecture] --sample_seed [Seed] --hidden_size [HID_s] --num_hidden [HID_n] --nl [#Stacked Pooling model] train --lr [Lr] --dropout [Dropout] --num_epochs [Num_epochs]`
 
-Here is an example to train a MMLP_GCN on a homophilous dataset
+Here is an example to train a RetexoGCN (mmlp_gcn) on a homophilous dataset
 
 `python src/main.py --dataset cora --arch mmlp_gcn --sample_seed 10 --hidden_size 256 --num_hidden 2 --nl 2 train --lr 0.01 --dropout --num_epochs 400`
 
