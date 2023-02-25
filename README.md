@@ -24,7 +24,8 @@ We have considered the following datasets and architectures
 &nbsp;   RetexoGNNs: RetexoGCN, RetexoSAGE, RetexoGAT
 
 ### Run training for a single model 
-To Train a gnn model on homophilous dataset 
+
+#### Train a GNN on homophilous dataset 
 
 `python src/main.py --dataset [Dataset] --arch [Architecture] --sample_seed [Seed] --hidden_size [HID_s] --num_hidden [HID_n] train --lr [Lr] --dropout [Dropout] --num_epochs [Num_epochs]`
 
@@ -32,37 +33,36 @@ Here is an example to train a GCN on a homophilous dataset
 
 `python src/main.py --dataset cora --arch gcn --sample_seed 10 --hidden_size 256 --num_hidden 2 train --lr 0.01 --dropout 0.0 --num_epochs 400`
 
-To Train a Retexo model on homophilous dataset (use mmlp_[gnn]) 
+#### Train a RetexoGNN on homophilous dataset 
 
 `python src/main.py --dataset [Dataset] --arch [Architecture] --sample_seed [Seed] --hidden_size [HID_s] --num_hidden [HID_n] --nl [#Stacked Pooling model] train --lr [Lr] --dropout [Dropout] --num_epochs [Num_epochs]`
 
-Here is an example to train a RetexoGCN (mmlp_gcn) on a homophilous dataset
+Use mmlp_[gnn] for the architecture option, and nl is the number of models stacked after the first mlp. So, for 3 models stacked together in retexo nl will be 2. Here is an example to train a RetexoGCN (mmlp_gcn) on a homophilous dataset
 
 `python src/main.py --dataset cora --arch mmlp_gcn --sample_seed 10 --hidden_size 256 --num_hidden 2 --nl 2 train --lr 0.01 --dropout --num_epochs 400`
 
-For Retexo models nl is the number of model stacked after the first mlp. So, for 3 models stacked together in retexo nl will be 2.
-
-In order to train a model on heterphious dataset, you need to add `--hetero` in the same command used for homophilous dataset. Here is an example to train a GCN on heterophilous dataset
+#### Heterophilous and Inductive
+In order to train a model on heterphilous dataset, add `--hetero` in the same command used for homophilous dataset. Here is an example to train a GCN on heterophilous dataset
 
 `python src/main.py --dataset wiki-cooc --hetero --arch gcn --sample_seed 10 --hidden_size 256 --num_hidden 2 train --lr 0.01 --dropout 0.0 --num_epochs 400`
 
 Similarly, you can train a Retexo model on a heterophilous dataset.
 
-You can also run for multiple seeds using the `--num_seeds` option. The results are stored in the folder defined in globals.py or the directory specified using the `--outdir` option, by default the result are stored in `./results`. The trained models are stored in the args.outdir/models directory.
+By Default the training will proceed in transductive setting. To train a model in the inductive setting, add the `--inductive` option.
 
-In order to neighbor sampling, you have to add `--sample_neighbors` to the train command for all datasets and models. You can also fix the batch size for a every round of training by adding `--batch_size [Batch_Size]` to the train command.
+`python src/main.py --dataset cora --arch mmlp_gcn --sample_seed 10 --inductive --hidden_size 256 --num_hidden 2 --nl 2 --sample_neighbors --batch_size 512 --early_stopping train --lr 0.01 --dropout 0.0 --num_epochs 400`
 
-An Example for that would be
+#### Miscellaneous
 
-`python src/main.py --dataset cora --arch mmlp_gcn --sample_seed 10 --hidden_size 256 --num_hidden 2 --nl 2 --sample_neighbors --batch_size 512 train --lr 0.01 --dropout 0.0 --num_epochs 400`
+You can also run for multiple seeds using the `--num_seeds` option. In order to do neighbor sampling, add the `--sample_neighbors`. You can also fix the batch size by adding `--batch_size [Batch_Size]`.
 
-Similarly, you can train all other models for all datasets with sampling of neighbors for a particular batch size. We have also implemented early stopping for the train, you can add `--early_stopping` to train command. An Example for that would be
+`python src/main.py --dataset cora --arch mmlp_gcn --num_seeds 10 --hidden_size 256 --num_hidden 2 --nl 2 --sample_neighbors --batch_size 512 train --lr 0.01 --dropout 0.0 --num_epochs 400`
+
+Add the `--early_stopping` option for stopping early based on validation accuracy.
 
 `python src/main.py --dataset cora --arch mmlp_gcn --sample_seed 10 --hidden_size 256 --num_hidden 2 --nl 2 --sample_neighbors --batch_size 512 --early_stopping train --lr 0.01 --dropout 0.0 --num_epochs 400`
 
-By Default all training will proceed in transductive setting. To train a model in inductive settings, you have to add `--inductive` to the train command. It would look like
-
-`python src/main.py --dataset cora --arch mmlp_gcn --sample_seed 10 --inductive --hidden_size 256 --num_hidden 2 --nl 2 --sample_neighbors --batch_size 512 --early_stopping train --lr 0.01 --dropout 0.0 --num_epochs 400`
+The results are stored in the folder defined in globals.py or the directory specified using the `--outdir` option, by default the result are stored in `./results`. The trained models are stored in the args.outdir/models directory.
 
 ## Communication Cost
 ### Compare communication cost of GNNs and Retexo
