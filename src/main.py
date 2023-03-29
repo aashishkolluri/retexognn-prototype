@@ -13,6 +13,7 @@ from trainers.mlp_trainer import train_mlp_on_dataset
 from trainers.mmlp_trainer import train_mmlp_like_models
 from trainers.sage_trainer import train_sage_on_dataset
 from trainers.gat_trainer import train_gat_on_dataset
+from trainers.dglsage_trainer import train_dglsage_on_dataset
 
 import pickle
 import csv
@@ -77,6 +78,15 @@ def run_training(
             feed_hidden_layer=feed_hidden_layer,
             sample_neighbors=sample_neighbors,
         )
+    elif arch == utils.Architecture.DGLSAGE:
+        train_dglsage_on_dataset(
+            run_config,
+            dataset,
+            device,
+            seeds=seeds,
+            sample_neighbors=sample_neighbors
+        )
+        train_stats = None
     else:
         print("Arch {} not supported".format(arch))
         return None

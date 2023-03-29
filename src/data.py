@@ -1,6 +1,8 @@
 import torch
 import torch_geometric
-from torch_geometric.datasets import Planetoid, FacebookPagePage, LastFMAsia, KarateClub
+import dgl
+from torch_geometric.datasets import Planetoid, FacebookPagePage, LastFMAsia, KarateClub, Yelp
+from ogb.nodeproppred import Evaluator, PygNodePropPredDataset, DglNodePropPredDataset
 import numpy as np
 from utils import Dataset
 import os
@@ -117,6 +119,53 @@ class LoadData:
             # get number of nodes
             train_mask, val_mask, test_mask = self._get_masks_fb_page(dataset, 0.9, 0.5)
             edge_index = dataset[0].edge_index
+        elif self.dataset in [Dataset.OGBNProducts, Dataset.OGBNArxiv]:
+            # dataset = DglNodePropPredDataset(name=self.dataset.value, root=self.load_dir)
+            dataset = PygNodePropPredDataset(name=self.dataset.value, root=self.load_dir)
+            graph, node_labels = dataset[0]
+            graph = dgl.add_reverse_edges(graph)
+            
+            graph.ndata["label"] = node_labels[:, 0]
+            node_features = graph.ndata["feat"]
+            
+            features = dataset[0].x
+            labels = dataset[0].y.squeeze()
+            split_idx = dataset.get_idx_split()
+            nnodes = len(dataset[0].x)
+            
+            train_idx = split_idx["train"]
+            train_mask = torch.zeros(nnodes, dtype=torch.bool)
+            train_mask[train_idx] = True
+            
+            val_idx = split_idx["valid"]
+            val_mask = torch.zeros(nnodes, dtype=torch.bool)
+            val_mask[val_idx] = True
+            
+            test_idx = split_idx["test"]
+            test_mask = torch.zeros(nnodes, dtype=torch.bool)
+            test_mask[test_idx] = True
+            
+            edge_index = dataset[0].edge_index
+        elif self.dataset == Dataset.Yelp:
+            dataset = dgl.data.YelpDataset(force_reload=True)
+            graph = dataset[0]
+            
+            features = graph.ndata["feat"]
+            labels = graph.ndata["label"]
+            train_mask = graph.ndata["train_mask"]
+            val_mask = graph.ndata["val_mask"]
+            test_mask = graph.ndata["test_mask"]
+            edge_index = None
+        elif self.dataset == Dataset.DGLCora:
+            dataset = dgl.data.CoraGraphDataset()
+            graph = dataset[0]
+            
+            features = graph.ndata["feat"]
+            labels = graph.ndata["label"]
+            train_mask = graph.ndata["train_mask"]
+            val_mask = graph.ndata["val_mask"]
+            test_mask = graph.ndata["test_mask"]
+            edge_index = None
         elif self.dataset == Dataset.LastFM:
             dataset = LastFMAsia(self.load_dir)
             features = dataset[0].x
@@ -173,12 +222,20 @@ class LoadData:
             exit()
         
         data = dataset[0]
-        data.n_id = torch.arange(dataset[0].num_nodes) # is not defined for inductive 
+        
+        try:
+            data.n_id = torch.arange(dataset[0].num_nodes) # is not defined for inductive 
+        except:
+            data.n_id = torch.arange(dataset[0].num_nodes())
+            
+        if self.dataset in [Dataset.OGBNArxiv, Dataset.OGBNProducts]:
+            data.y = data.y.squeeze()
+        
         self.train_data = data
         self.val_data = data
         self.test_data = data
         self.features = features.clone()
-        print("len(features) {}".format(len(features)))
+        # print("len(features) {}".format(len(features)))
 
         self.train_features = self.features
         self.val_features = self.features
@@ -210,8 +267,12 @@ class LoadData:
         self.train_mask = train_mask
         self.val_mask = val_mask
         self.test_mask = test_mask
-        self.num_classes = len(set(self.labels.numpy()))
         
+        try:
+            self.num_classes = len(set(self.labels.numpy()))
+        except:
+            self.num_classes = self.labels.numpy().shape[1]
+            
         print(
             "{} {} {}".format(
                 (self.train_mask == True).sum().item(),

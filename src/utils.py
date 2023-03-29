@@ -17,6 +17,7 @@ class Architecture(Enum):
     MMLPGCN = "mmlp_gcn"
     MMLPSAGE = "mmlp_sage"
     GraphSAGE = "graphSAGE"
+    DGLSAGE = "dglSAGE"
     GAT = "gat"
     MMLPGAT = "mmlp_gat"
 
@@ -33,6 +34,10 @@ class Dataset(Enum):
     WikiCooc = "wiki-cooc"
     Roman = "roman-empire"
     KarateClub = 'karateclub'
+    OGBNProducts = 'ogbn-products'
+    OGBNArxiv = 'ogbn-arxiv'
+    Yelp = 'yelp'
+    DGLCora = 'dglcora'
 
     def __str__(self):
         return self.value
