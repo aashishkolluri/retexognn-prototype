@@ -1,11 +1,11 @@
 import sys
 sys.path.append("..")
 from data import LoadData
-from models.DGLSage import DGLSage
-from trainers.general_trainer import set_torch_seed
+from models.dglsage import DGLSage
+from trainers.general_trainer import set_torch_seed, TrainStats
 from torch.optim import SGD, Adam, lr_scheduler
+from trainers.general_dgl_trainer import DGLTrainer
 from tqdm import tqdm
-from sklearn import metrics
 import torch
 import torch.nn as nn
 import utils
@@ -43,23 +43,13 @@ def get_scheduler(run_config, optimizer):
     return scheduler
 
 
-def calc_f1(y_true, y_pred):
-    y_true = y_true.detach().cpu().numpy()
-    a = nn.Softmax(dim=1)
-    y_pred = a(y_pred)
-    y_pred = y_pred.detach().cpu().numpy()
-    
-    y_pred[y_pred > 0.5] = 1
-    y_pred[y_pred <= 0.5] = 0
-    
-    return metrics.f1_score(y_true, y_pred, average="micro")
-
 def train_dglsage_on_dataset(
     run_config,
     dataset: utils.Dataset,
     device,
     seeds=[1],
-    sample_neighbors=False
+    sample_neighbors=False,
+    feed_hidden_layer=False,
 ):
     print(
         "Training DGLSage dataset={}".format(dataset)
@@ -94,7 +84,7 @@ def train_dglsage_on_dataset(
         
         num_train_nodes = (data_loader.train_mask == True).sum().item()
         batch_size = run_config.batch_size if run_config.batch_size else num_train_nodes
-        num_neighbors = [25, 25] if sample_neighbors else [-1, -1]
+        num_neighbors = [25, 25, 25] if sample_neighbors else [-1, -1]
         
         train_ids = (train_mask == True).nonzero(as_tuple=True)[0]
         val_ids = (val_mask == True).nonzero(as_tuple=True)[0]
@@ -132,72 +122,60 @@ def train_dglsage_on_dataset(
             device=device            
         )
         
-        optimizer = get_optimizer(model, run_config)
-        scheduler = get_scheduler(run_config, optimizer)
+        kwargs = {}
+        trainer = DGLTrainer(model, rng, seed=seeds[i])
         
-        train_iterator = tqdm(range(0, int(run_config.num_epochs)), desc="Epoch")
+        val_loss, val_acc, best_epoch = trainer.train(
+            dataset,
+            train_dataloader,
+            val_dataloader,
+            device,
+            run_config,
+            kwargs=kwargs,
+            feed_hidden_layer=feed_hidden_layer,
+            sample_neighbors=sample_neighbors
+        )
+                  
+        test_dataloader = dgl.dataloading.DataLoader(
+            data,
+            test_ids,
+            sampler,
+            device=device,
+            batch_size=test_mask.sum().item(),
+            shuffle=True,
+            drop_last=False,
+            num_workers=0
+        )
         
-        for epoch in train_iterator:
-            model.train()
-            
-            total_train_loss = total_val_loss = 0
-            total_train_correct = total_val_correct = 0
-            total_train_examples = total_val_examples = 0
-            num_batch = len(train_dataloader)
-            
-            for i, (input_nodes, output_nodes, mfgs) in enumerate(train_dataloader):
-                optimizer.zero_grad()
-                inputs = mfgs[0].srcdata['feat']
-                labels = mfgs[-1].dstdata['label']
-                labels = labels.to(torch.float32)
-                batch_size = labels.size()[0]
-                predictions = model(mfgs, inputs)
-                
-                loss = nn.CrossEntropyLoss()(predictions, labels)
-                loss.backward()
-                optimizer.step()
-                scheduler.step()
-              
-                total_train_loss += float(loss) * batch_size
-                total_train_correct += int((predictions.argmax(dim=-1) == labels).sum())
-                total_train_examples += batch_size
-            
-            model.eval()
-            
-            for i, (input_nodes, output_nodes, mfgs) in enumerate(val_dataloader):
-                inputs = mfgs[0].srcdata['feat']
-                labels = mfgs[-1].dstdata['label']
-                labels = labels.to(torch.float32)
-                batch_size = labels.size()[0]
-                
-                with torch.no_grad():
-                    predictions = model(mfgs, inputs)
-                    loss = nn.CrossEntropyLoss()(predictions, labels)
-                
-                total_val_loss += float(loss) * batch_size
-                total_val_correct += int((predictions.argmax(dim=-1) == labels).sum())
-                total_val_examples += batch_size
+        test_loss, test_acc, f1_score, out_labels, logits = trainer.evaluate(
+            test_dataloader, run_config, kwargs=kwargs
+        )
+        
+        all_outputs.append((out_labels, logits))
+        test_accuracies.append(test_acc)
+        test_losses.append(test_loss)
+        val_losses.append(val_loss)
+        val_accuracies.append(val_acc)
+        f1_scores.append(f1_score)
+        best_epochs.append(best_epoch)
+        
+    train_stats = TrainStats(
+        run_config,
+        dataset,
+        model.model_name,
+        all_outputs,
+        val_losses,
+        val_accuracies,
+        test_losses,
+        test_accuracies,
+        best_epochs,
+        seeds,
+        f1_scores
+    )
 
-            train_loss = total_train_loss / total_train_examples
-            val_loss = total_val_loss / total_val_examples
-            val_acc = total_val_correct / total_val_examples
-            
-            train_iterator.set_description(
-                f"Training loss = {train_loss:.4f}, "
-                f"val loss = {val_loss: .4f}, "
-                f"val accuracy = {val_acc: .2f}"
-            )
-            
-        # y_test = labels[test_mask]
-        # y_test = y_test.to(torch.float32)
-        # y_hat_test = model(data, features)[test_mask]
-        
-        # test_loss = nn.BCEWithLogitsLoss()(y_hat_test, y_test)
-        # f1_micro_test = calc_f1(y_test, y_hat_test)
-        
-        # print(f"Test Loss {test_loss.item()}")
-        # print(f"Test Accuracy {f1_micro_test}")
-
+    train_stats.print_stats()
+    
+    return train_stats
             
             
             
