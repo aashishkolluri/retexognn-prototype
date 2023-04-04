@@ -74,7 +74,7 @@ def train_sage_on_dataset(
         val_loader = NeighborLoader(
             data_loader.val_data,
             num_neighbors=num_neighbors,
-            batch_size=batch_size,
+            batch_size=500,
             input_nodes=data_loader.val_mask,
             **{'shuffle': True}
         )

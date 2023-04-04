@@ -11,9 +11,11 @@ from trainers.general_trainer import RunConfig
 from trainers.gcn_trainer import train_gcn_on_dataset
 from trainers.mlp_trainer import train_mlp_on_dataset
 from trainers.mmlp_trainer import train_mmlp_like_models
+from trainers.mmlp_dgl_trainer import train_mmlp_dgl_like_models
 from trainers.sage_trainer import train_sage_on_dataset
 from trainers.gat_trainer import train_gat_on_dataset
 from trainers.dglsage_trainer import train_dglsage_on_dataset
+from trainers.dglgcn_trainer import train_dglgcn_on_dataset
 
 import pickle
 import csv
@@ -78,15 +80,32 @@ def run_training(
             feed_hidden_layer=feed_hidden_layer,
             sample_neighbors=sample_neighbors,
         )
-    elif arch == utils.Architecture.DGLSAGE:
-        train_dglsage_on_dataset(
+    elif arch == utils.Architecture.DGLGCN:
+        train_stats = train_dglgcn_on_dataset(
             run_config,
             dataset,
             device,
             seeds=seeds,
             sample_neighbors=sample_neighbors
         )
-        train_stats = None
+    elif arch == utils.Architecture.DGLSAGE:
+        train_stats = train_dglsage_on_dataset(
+            run_config,
+            dataset,
+            device,
+            seeds=seeds,
+            sample_neighbors=sample_neighbors
+        )
+    elif arch in [utils.Architecture.MMLPDGLSAGE, utils.Architecture.MMLPDGLGCN]:
+        train_stats = train_mmlp_dgl_like_models(
+            run_config,
+            dataset,
+            device,
+            arch,
+            seeds=seeds,
+            sample_neighbors=sample_neighbors,
+            feed_hidden_layer=feed_hidden_layer
+        )
     else:
         print("Arch {} not supported".format(arch))
         return None
