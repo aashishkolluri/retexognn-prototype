@@ -79,8 +79,7 @@ class MultiMLPGCN(GeneralMultiMLPModel):
                 hidden_size=self.hidden_size,
                 output_size=output_size,
                 dropout=run_config.dropout,
-                num_hidden=num_hidden,
-                num_sample=num_samples[it-1]
+                num_hidden=num_hidden
             )
             
             self.model_list.append(model)

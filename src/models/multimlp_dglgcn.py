@@ -27,12 +27,12 @@ class DGLMLPGCN(DGLMLP):
             x = torch.cat((feat_dst, h_N), dim=1)
             
             for i in range(self.num_hidden-1):
-                x = x[:mfgs[i].num_dst_nodes()]
+                # x = x[:mfgs[i].num_dst_nodes()]
                 x = self.linear_layers_list[i](x)
                 x = self.relu(x)
                 x = self.dropout(x)
                 
-            x = x[:mfgs[-1].num_dst_nodes()]
+            # x = x[:mfgs[-1].num_dst_nodes()]
             x = self.linear_layers_list[self.num_hidden-1](x)
             
             return x

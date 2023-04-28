@@ -87,11 +87,11 @@ def train_mmlp_like_models(
         num_train_nodes = (data_loader.train_mask == True).sum().item()
         
         batch_size = run_config.batch_size if run_config.batch_size else num_train_nodes
-        num_neighbors = [25, 25] if sample_neighbors else [-1, -1]       
+        num_neighbors = [25] if sample_neighbors else [-1]       
 
         train_loader = NeighborLoader(
             data_loader.train_data,
-            num_neighbors=num_neighbors,
+            num_neighbors=[0],
             batch_size=batch_size,
             input_nodes=data_loader.train_mask,
             **{'shuffle': True}
@@ -100,7 +100,7 @@ def train_mmlp_like_models(
         data_loader.val_data = data_loader.val_data.to(device, 'x', 'y')
         val_loader = NeighborLoader(
             data_loader.val_data,
-            num_neighbors=num_neighbors,
+            num_neighbors=[0],
             batch_size=batch_size,
             input_nodes=data_loader.val_mask,
             **{'shuffle': True}
@@ -382,6 +382,8 @@ def train_mmlp_like_models(
                 features1_val = val1_logits.detach()
                 ft_nl_val = [features1_val]
 
+            del train_loader
+            del val_loader
         if run_config.calculate_communication:
             comm_result = {}
             comm_result_with_server = {}
@@ -420,7 +422,7 @@ def train_mmlp_like_models(
         data_loader.test_data = data_loader.test_data.to(device, 'x', 'y')
         test_loader = NeighborLoader(
             data_loader.test_data,
-            num_neighbors=num_neighbors,
+            num_neighbors=[25, 25, 25],
             batch_size=data_loader.test_mask.sum().item(),
             input_nodes=data_loader.test_mask,
         )

@@ -84,7 +84,7 @@ def train_mmlp_dgl_like_models(
         
         num_train_nodes = (data_loader.train_mask == True).sum().item()
         batch_size = run_config.batch_size if run_config.batch_size else num_train_nodes
-        num_neighbors = [25,25] if sample_neighbors else [-1,-1]
+        num_neighbors = [25] if sample_neighbors else [-1]
         
         train_ids = (train_mask == True).nonzero(as_tuple=True)[0]
         val_ids = (val_mask == True).nonzero(as_tuple=True)[0]
@@ -163,22 +163,26 @@ def train_mmlp_dgl_like_models(
             eval_ids,
             sampler,
             device=device,
-            batch_size=eval_mask.sum().item(),
+            batch_size=batch_size,
             shuffle=False,
             drop_last=False,
             num_workers=0
         )
      
-        logits = None
-        labels = None 
+        logits_all = []
+        labels_all = [] 
         
-        for i, (input_nodes, output_nodes, mfgs) in enumerate(eval_loader):
-            model.eval()
-            
+        model.eval()
+        for _, (input_nodes, output_nodes, mfgs) in enumerate(eval_loader):
             inputs = mfgs[-1].dstdata['feat']
             labels = mfgs[-1].dstdata['label']
             logits = model(mfgs, inputs, **kwargs)
             
+            labels_all.append(labels)
+            logits_all.append(logits)
+        
+        logits = torch.cat(logits_all, dim=0)
+        labels = torch.cat(labels_all, dim=0)
         del eval_loader
         
         features1 = logits.detach()
@@ -257,19 +261,26 @@ def train_mmlp_dgl_like_models(
                 eval_ids,
                 sampler,
                 device=device,
-                batch_size=eval_mask.sum().item(),
+                batch_size=batch_size,
                 shuffle=False,
                 drop_last=False,
                 num_workers=0       
             )
 
-            for i, (input_nodes, output_nodes, mfgs) in enumerate(eval_loader):
+            logits_all = []
+            labels_all = []
+            for _, (input_nodes, output_nodes, mfgs) in enumerate(eval_loader):
                 model1.eval()
                 
                 inputs = mfgs[0].srcdata['feat']
                 labels = mfgs[-1].dstdata['label']
                 logits = model1(mfgs, inputs, **kwargs1)
+                
+                logits_all.append(logits)
+                labels_all.append(labels)
             
+            logits = torch.cat(logits_all, dim=0)
+            labels = torch.cat(labels_all, dim=0)    
             del eval_loader
             
             features1 = logits.detach()

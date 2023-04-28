@@ -22,7 +22,7 @@ class DGLMLP(GeneralModel):
     
     def forward(self, mfgs, x: torch.Tensor, **kwargs):
         for i in range(self.num_hidden-1):
-            x = x[:mfgs[i].num_dst_nodes()]
+            # x = x[:mfgs[i].num_dst_nodes()]
             x = self.linear_layers_list[i](x)
             x = self.relu(x)
             x = self.dropout(x)

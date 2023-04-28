@@ -17,7 +17,6 @@ class GCN(nn.Module):
         self.output_size = output_size
         self.linear_layers_list = nn.ModuleList()
         self.linear_layers_list.append(nn.Linear(2*input_size, hidden_size, bias=False))
-        
         for _ in range(1, self.num_hidden-1):
             self.linear_layers_list.append(nn.Linear(2*hidden_size, hidden_size, bias=False))
         self.linear_layers_list.append(nn.Linear(2*hidden_size, output_size, bias=False))

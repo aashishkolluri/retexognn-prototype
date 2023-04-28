@@ -50,20 +50,20 @@ class GraphSAGE(GeneralModel):
         self.relu = nn.ReLU()
         self.num_hidden = num_hidden
 
-        aggregator = MaxPoolAggregator(input_size, pool_size, device=device)
+        aggregator = MaxPoolAggregator(input_size, input_size, device=device)
         self.aggregators_list.append(aggregator)
-        layer = nn.Linear(input_size + pool_size, hidden_size, bias=False)
+        layer = nn.Linear(input_size + input_size, hidden_size, bias=False)
         self.linear_layers_list.append(layer)
 
         for _ in range(1, self.num_hidden-1):
-            aggregator = MaxPoolAggregator(hidden_size, pool_size, device=device)
+            aggregator = MaxPoolAggregator(hidden_size, hidden_size, device=device)
             self.aggregators_list.append(aggregator)
-            layer = nn.Linear(hidden_size + pool_size, hidden_size, bias=False)
+            layer = nn.Linear(hidden_size + hidden_size, hidden_size, bias=False)
             self.linear_layers_list.append(layer)
 
-        aggregator = MaxPoolAggregator(hidden_size, pool_size, device=device)
+        aggregator = MaxPoolAggregator(hidden_size, hidden_size, device=device)
         self.aggregators_list.append(aggregator)
-        layer = nn.Linear(hidden_size + pool_size, output_size, bias=False)
+        layer = nn.Linear(hidden_size + hidden_size, output_size, bias=False)
         self.linear_layers_list.append(layer)
 
     def forward(self, x: torch.Tensor, labels: torch.Tensor = None, **kwargs):

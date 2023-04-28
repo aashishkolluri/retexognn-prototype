@@ -77,7 +77,7 @@ class GAT(nn.Module):
         for _ in range(1, self.num_hidden-1):
             attentions = torch.nn.ModuleList()
             for _ in range(num_heads):
-                attentions.append(GraphAttentionLayer(hidden_size, hidden_size, dropout=dropout, alpha=alpha, concat=True))
+                attentions.append(GraphAttentionLayer(hidden_size * num_heads, hidden_size, dropout=dropout, alpha=alpha, concat=True))
             self.convs.append(attentions)
         out_att = GraphAttentionLayer(hidden_size * num_heads, output_size, dropout=dropout, alpha=alpha, concat=False)
         self.convs.append(out_att)

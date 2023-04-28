@@ -60,7 +60,7 @@ def train_sage_on_dataset(
         
         num_train_nodes = (data_loader.train_mask == True).sum().item()     
         batch_size = run_config.batch_size if run_config.batch_size else num_train_nodes
-        num_neighbors = [25, 25] if sample_neighbors else [-1, -1]
+        num_neighbors = [25, 25, 25] if sample_neighbors else [-1, -1, -1]
 
         train_loader = NeighborLoader(
             data_loader.train_data,
@@ -74,7 +74,7 @@ def train_sage_on_dataset(
         val_loader = NeighborLoader(
             data_loader.val_data,
             num_neighbors=num_neighbors,
-            batch_size=500,
+            batch_size=batch_size,
             input_nodes=data_loader.val_mask,
             **{'shuffle': True}
         )
