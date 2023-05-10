@@ -39,8 +39,6 @@ def train_mmlp_like_models(
     best_epochs = []
     is_rare = "twitch" in dataset.value
 
-    # if arch == utils.Architecture.MMLPGAT:
-    #     run_config.hidden_size = run_config.hidden_size // run_config.attn_heads
         
     for i in range(len(seeds)):
         set_torch_seed(seeds[i])

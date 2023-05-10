@@ -120,7 +120,7 @@ class LoadData:
             # get number of nodes
             train_mask, val_mask, test_mask = self._get_masks_fb_page(dataset, 0.9, 0.5)
             edge_index = dataset[0].edge_index
-        elif self.dataset in [Dataset.OGBNArxiv]:
+        elif self.dataset in [Dataset.OGBNArxiv, Dataset.OGBNProducts]:
             dataset = PygNodePropPredDataset(name=self.dataset.value)
             data = dataset[0]
             features = dataset[0].x
@@ -140,42 +140,35 @@ class LoadData:
             test_idx = split_idx["test"]
             test_mask = torch.zeros(nnodes, dtype=torch.bool)
             test_mask[test_idx] = True
-            
-            orig_edge_index = data.edge_index.clone().detach()
-            
-            new_edge_index_0 = torch.cat((data.edge_index[0], orig_edge_index[1]), dim=0)
-            new_edge_index_1 = torch.cat((data.edge_index[1], orig_edge_index[0]), dim=0)
-            
-            data.edge_index = torch.stack([new_edge_index_0, new_edge_index_1])            
-            edge_index = data.edge_index                       
-        elif self.dataset in [Dataset.OGBNProducts]:
-            dataset = DglNodePropPredDataset(name=self.dataset.value, root=self.load_dir)
+            edge_index = None                     
+        # elif self.dataset in [Dataset.OGBNProducts]:
+        #     dataset = DglNodePropPredDataset(name=self.dataset.value, root=self.load_dir)
 
-            graph, node_labels = dataset[0]
+        #     graph, node_labels = dataset[0]
             
-            labels = node_labels.squeeze()
-            split_idx = dataset.get_idx_split()
-            nnodes = len(labels)
+        #     labels = node_labels.squeeze()
+        #     split_idx = dataset.get_idx_split()
+        #     nnodes = len(labels)
             
-            train_idx = split_idx["train"]
-            train_mask = torch.zeros(nnodes, dtype=torch.bool)
-            train_mask[train_idx] = True
+        #     train_idx = split_idx["train"]
+        #     train_mask = torch.zeros(nnodes, dtype=torch.bool)
+        #     train_mask[train_idx] = True
             
-            val_idx = split_idx["valid"]
-            val_mask = torch.zeros(nnodes, dtype=torch.bool)
-            val_mask[val_idx] = True
+        #     val_idx = split_idx["valid"]
+        #     val_mask = torch.zeros(nnodes, dtype=torch.bool)
+        #     val_mask[val_idx] = True
             
-            test_idx = split_idx["test"]
-            test_mask = torch.zeros(nnodes, dtype=torch.bool)
-            test_mask[test_idx] = True
+        #     test_idx = split_idx["test"]
+        #     test_mask = torch.zeros(nnodes, dtype=torch.bool)
+        #     test_mask[test_idx] = True
             
-            graph.ndata['label'] = labels
-            graph.ndata['train_mask'] = train_mask
-            graph.ndata['val_mask'] = val_mask
-            graph.ndata['test_mask'] = test_mask
+        #     graph.ndata['label'] = labels
+        #     graph.ndata['train_mask'] = train_mask
+        #     graph.ndata['val_mask'] = val_mask
+        #     graph.ndata['test_mask'] = test_mask
             
-            features = graph.ndata["feat"]
-            edge_index = None
+        #     features = graph.ndata["feat"]
+        #     edge_index = None
         elif self.dataset == Dataset.Yelp:
             dataset = dgl.data.YelpDataset(force_reload=True)
             graph = dataset[0]
@@ -220,8 +213,8 @@ class LoadData:
                 'pubmed': [329, 987, 17743],
             }
             
-            # dataset = Planetoid(root=self.load_dir, name=self.dataset.name, split='random', num_train_per_class=num_split[self.dataset.name.lower()][0], num_val=num_split[self.dataset.name.lower()][1], num_test=num_split[self.dataset.name.lower()][2])
-            dataset = Planetoid(root=self.load_dir, name=self.dataset.name, split='public')
+            dataset = Planetoid(root=self.load_dir, name=self.dataset.name, split='random', num_train_per_class=num_split[self.dataset.name.lower()][0], num_val=num_split[self.dataset.name.lower()][1], num_test=num_split[self.dataset.name.lower()][2])
+            # dataset = Planetoid(root=self.load_dir, name=self.dataset.name, split='public')
             features = dataset[0].x
             labels = dataset[0].y
             train_mask = dataset[0].train_mask
@@ -251,27 +244,22 @@ class LoadData:
             print(f"Dataset Loading undefined for {self.dataset.value}")
             exit()
         
-        if self.dataset in [Dataset.OGBNProducts]:
-            data = graph
-        else:
-            data = dataset[0]
-            if self.dataset in [Dataset.OGBNArxiv]:
-                orig_edge_index = data.edge_index.clone().detach()
-            
-                new_edge_index_0 = torch.cat((data.edge_index[0], orig_edge_index[1]), dim=0)
-                new_edge_index_1 = torch.cat((data.edge_index[1], orig_edge_index[0]), dim=0)
-            
-                data.edge_index = torch.stack([new_edge_index_0, new_edge_index_1]) 
+        data = dataset[0]
         
+        if self.dataset in [Dataset.OGBNArxiv, Dataset.WikiCooc, Dataset.Roman]:
+            orig_edge_index = data.edge_index.clone().detach()
+            
+            new_edge_index_0 = torch.cat((data.edge_index[0], orig_edge_index[1]), dim=0)
+            new_edge_index_1 = torch.cat((data.edge_index[1], orig_edge_index[0]), dim=0)
+            
+            data.edge_index = torch.stack([new_edge_index_0, new_edge_index_1]) 
+            edge_index = data.edge_index
         try:
             data.n_id = torch.arange(dataset[0].num_nodes) # is not defined for inductive 
         except:
-            if self.dataset in [Dataset.OGBNProducts]:
-                data.n_id = torch.arange(nnodes)
-            else:
-                data.n_id = torch.arange(dataset[0].num_nodes())
+            data.n_id = torch.arange(dataset[0].num_nodes())
             
-        if self.dataset in [Dataset.OGBNArxiv]:
+        if self.dataset in [Dataset.OGBNArxiv, Dataset.OGBNProducts]:
             data.y = data.y.squeeze()
         
         self.train_data = data

@@ -76,16 +76,17 @@ class GATSep(nn.Module):
         for _ in range(num_heads):
             attentions.append(GraphAttentionLayer(input_size, hidden_size, dropout=dropout, alpha=alpha, concat=True))
         self.convs.append(attentions)
-        self.lin_layers.append(nn.Linear(num_heads*hidden_size*2, hidden_size))
+        self.lin_layers.append(nn.Linear(num_heads*hidden_size*2, hidden_size*num_heads, bias=False))
         for _ in range(1, self.num_hidden-1):
             attentions = torch.nn.ModuleList()
             for _ in range(num_heads):
-                attentions.append(GraphAttentionLayer(hidden_size, hidden_size, dropout=dropout, alpha=alpha, concat=True))
+                attentions.append(GraphAttentionLayer(hidden_size * num_heads, hidden_size, dropout=dropout, alpha=alpha, concat=True))
             self.convs.append(attentions)
-            self.lin_layers.append(nn.Linear(num_heads*hidden_size*2, hidden_size))
+            self.lin_layers.append(nn.Linear(num_heads*hidden_size*2, hidden_size * num_heads, bias=False))
 
-        self.out_att = GraphAttentionLayer(hidden_size, output_size, dropout=dropout, alpha=alpha, concat=False)
+        self.out_att = GraphAttentionLayer(hidden_size * num_heads, output_size, dropout=dropout, alpha=alpha, concat=False)
         self.convs.append(self.out_att)
+        self.lin_layers.append(nn.Linear(output_size*2, output_size, bias=False))
 
     def forward(self, x: torch.Tensor, labels: torch.Tensor = None, **kwargs):
         if not 'edge_index' in kwargs:
@@ -104,6 +105,7 @@ class GATSep(nn.Module):
             x = x + x_c
 
         x = self.convs[-1](x, edge_index)
+        x = self.lin_layers[-1](x)
         x = F.elu(x)
 
         if labels is None:

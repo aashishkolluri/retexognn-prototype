@@ -60,7 +60,7 @@ def train_sage_on_dataset(
         
         num_train_nodes = (data_loader.train_mask == True).sum().item()     
         batch_size = run_config.batch_size if run_config.batch_size else num_train_nodes
-        num_neighbors = [25, 25, 25] if sample_neighbors else [-1, -1, -1]
+        num_neighbors = [25] * run_config.num_hidden if sample_neighbors else [-1] * run_config.num_hidden
 
         train_loader = NeighborLoader(
             data_loader.train_data,
