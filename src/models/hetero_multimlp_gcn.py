@@ -65,7 +65,7 @@ class MultiMLPGCNSep(GeneralMultiMLPModel):
         eps=0.0,
         feed_hidden_layer=False,
         num_hidden=2,
-        model_name="mmlp_sage",
+        model_name="mmlp_gcn",
     ):
         super(MultiMLPGCNSep, self).__init__(run_config, input_size, output_size, device, rng, eps, num_hidden, model_name)
 
