@@ -1,9 +1,10 @@
-name: dpgcn
+name: ret_env
 channels:
   - pyg
   - pytorch
-  - defaults
+  - dglteam/label/cu113
   - conda-forge
+  - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=4.5=1_gnu
@@ -27,9 +28,9 @@ dependencies:
   - brotlipy=0.7.0=py38h497a2fe_1001
   - bzip2=1.0.8=h7b6447c_0
   - c-ares=1.18.1=h7f8727e_0
-  - ca-certificates=2021.10.26=h06a4308_2
+  - ca-certificates=2023.01.10=h06a4308_0
   - cachetools=4.2.4=pyhd8ed1ab_0
-  - certifi=2021.10.8=py38h06a4308_2
+  - certifi=2022.12.7=py38h06a4308_0
   - cffi=1.14.6=py38h400218f_0
   - chardet=4.0.0=py38h578d9bd_2
   - charset-normalizer=2.0.9=pyhd8ed1ab_0
@@ -43,6 +44,7 @@ dependencies:
   - decorator=5.1.0=pyhd8ed1ab_0
   - defusedxml=0.7.1=pyhd8ed1ab_0
   - descartes=1.1.0=pyhd3eb1b0_4
+  - dgl=1.0.1.cu113=py38_0
   - entrypoints=0.3=pyhd8ed1ab_1003
   - expat=2.4.1=h2531618_2
   - ffmpeg=4.3=hf484d3e_0
@@ -101,6 +103,7 @@ dependencies:
   - libwebp-base=1.2.0=h27cfd23_0
   - libxcb=1.14=h7b6447c_0
   - libxml2=2.9.12=h03d6c58_0
+  - littleutils=0.2.2=py_0
   - lz4-c=1.9.3=h295c915_1
   - markdown=3.3.6=pyhd8ed1ab_0
   - markupsafe=2.0.1=py38h497a2fe_0
@@ -128,9 +131,11 @@ dependencies:
   - numpy=1.21.2=py38h20f2e39_0
   - numpy-base=1.21.2=py38h79a1101_0
   - oauthlib=3.1.1=pyhd8ed1ab_0
+  - ogb=1.3.5=pyhd8ed1ab_0
   - olefile=0.46=pyhd3eb1b0_0
   - openh264=2.1.1=h4ff587b_0
-  - openssl=1.1.1m=h7f8727e_0
+  - openssl=1.1.1t=h7f8727e_0
+  - outdated=0.2.2=pyhd8ed1ab_0
   - packaging=21.3=pyhd3eb1b0_0
   - palettable=3.3.0=pyhd3eb1b0_0
   - pandas=1.3.4=py38h8c16a72_0
@@ -147,6 +152,7 @@ dependencies:
   - prometheus_client=0.12.0=pyhd8ed1ab_0
   - prompt-toolkit=3.0.24=pyha770c72_0
   - protobuf=3.17.2=py38h295c915_0
+  - psutil=5.8.0=py38h497a2fe_1
   - ptyprocess=0.7.0=pyhd3deb0d_0
   - pyasn1=0.4.8=py_0
   - pyasn1-modules=0.2.7=py_0
@@ -220,4 +226,4 @@ dependencies:
   - zstd=1.4.9=haebb681_0
   - pip:
     - celluloid==0.2.0
-prefix: /home/teodora/anaconda3/envs/dpgcn
+prefix: /home/sarthak/anaconda3/envs/ret_env

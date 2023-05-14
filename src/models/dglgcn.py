@@ -67,15 +67,15 @@ class DGLGCN(nn.Module):
                 mfgs[i + 1].dstdata["feat"] = feat_src[:mfgs[i + 1].num_dst_nodes()]
                 
         with mfgs[-1].local_scope():
-            feat_src = mfgs[-1].srcdata["feat"]
-            feat_dst = mfgs[-1].dstdata["feat"]
+            feat_src = mfgs[-2].dstdata["feat"]
+            # feat_dst = mfgs[-1].dstdata["feat"]
             
             msg_fn = fn.copy_u('h', 'm')
             mfgs[-1].srcdata['h'] = feat_src
             mfgs[-1].update_all(message_func=msg_fn, reduce_func=fn.mean('m', 'h_N'))
             h_N = mfgs[-1].dstdata['h_N']
             
-            feat_src = torch.cat((feat_dst, h_N), dim=1)
+            feat_src = torch.cat((feat_src[:mfgs[-1].num_dst_nodes()], h_N), dim=1)
             feat_src = self.linear_layers_list[-1](feat_src)
             
         return feat_src
