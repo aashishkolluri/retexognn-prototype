@@ -7,6 +7,7 @@ class MyGlobals(object):
     num_seeds = 1
     sample_seed = 42
     cuda_id = 0
+    extra_cuda_id = -1
     hidden_size = 256
     num_hidden = 2
     attn_heads = 8

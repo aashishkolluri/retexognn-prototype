@@ -208,7 +208,8 @@ def train_mmlp_like_models(
             
             labels = batch.y
             kwargs["edge_index"] = batch.edge_index.to(batch.x.device)
-            logits = model(batch.x, **kwargs)
+            with torch.no_grad():
+                logits = model(batch.x, **kwargs)
 
         del eval_loader
         
@@ -237,7 +238,8 @@ def train_mmlp_like_models(
                 
                 labels_val = batch.y
                 kwargs["edge_index"] = batch.edge_index.to(batch.x.device)
-                val_logits = model(batch.x, **kwargs)
+                with torch.no_grad():
+                    val_logits = model(batch.x, **kwargs)
 
             features1_val = val_logits.detach()
             labels_val = labels_val.detach()
@@ -352,7 +354,8 @@ def train_mmlp_like_models(
                 model1.eval()
                 
                 kwargs1["edge_index"] = batch.edge_index.to(batch.x.device)
-                logits = model1(batch.x, **kwargs1)
+                with torch.no_grad():
+                    logits = model1(batch.x, **kwargs1)
 
             del eval_loader
             
@@ -376,7 +379,8 @@ def train_mmlp_like_models(
                     model1.eval()
                     
                     kwargs1["edge_index"] = batch.edge_index.to(batch.x.device)
-                    val1_logits = model1(batch.x, **kwargs1)
+                    with torch.no_grad():
+                        val1_logits = model1(batch.x, **kwargs1)
 
                 
                 del eval_loader                
@@ -441,7 +445,8 @@ def train_mmlp_like_models(
             y = batch.y[:batch.batch_size]
             
             kwargs['edge_index'] = batch.edge_index.to(batch.x.device)
-            y_hat = mmlp(batch.x, **kwargs)[:batch.batch_size]
+            with torch.no_grad():
+                y_hat = mmlp(batch.x, **kwargs)[:batch.batch_size]
             
             logits.append(y_hat.cpu().detach().numpy())
             

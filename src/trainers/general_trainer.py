@@ -49,6 +49,8 @@ class RunConfig:  # Later overwritten in the main function. Only declaration and
     diff_nei: bool = False
     frac: float = 1.0
     hetero: bool = False
+    extra_cuda_id: int = MyGlobals.extra_cuda_id
+    big_dataset: bool = False
 
 
 class TrainStats(object):
@@ -233,6 +235,8 @@ class Trainer:
             train_model = kwargs["train_model"]
         
         for epoch in train_iterator:
+            if run_config.extra_cuda_id != -1:
+                self.model = self.model.to(f"cuda:{run_config.extra_cuda_id}")
             self.model.train()
             
             total_loss = total_correct = total_examples = 0
@@ -243,9 +247,15 @@ class Trainer:
                     if run_config.calculate_communication:
                         self.calculate_communication(batch, comm_stats, comm_stats_with_server, is_mmlp, train_model)     
                     optimizer.zero_grad()
-                    y = batch.y[:batch.batch_size]
                     
-                    kwargs["edge_index"] = batch.edge_index.to(device)
+                    if run_config.extra_cuda_id != -1:
+                        batch.x = batch.x.to(f"cuda:{run_config.extra_cuda_id}")
+                        batch.y = batch.y.to(f"cuda:{run_config.extra_cuda_id}")
+                        kwargs["edge_index"] = batch.edge_index.to(f"cuda:{run_config.extra_cuda_id}")
+                    else:
+                        kwargs["edge_index"] = batch.edge_index.to(device)
+                
+                    y = batch.y[:batch.batch_size]
                     y_hat = self.model(batch.x , **kwargs)[:batch.batch_size]
                     loss = nn.CrossEntropyLoss()(y_hat, y)
                     loss.backward()
@@ -258,6 +268,9 @@ class Trainer:
 
             loss = total_loss / total_examples
             acc = total_correct / total_examples            
+            
+            if run_config.extra_cuda_id != -1:
+                self.model = self.model.to(device)
             
             val_loss, val_accuracy, _, _, _, _ = self.evaluate(
                 val_loader, run_config, kwargs=kwargs
@@ -291,6 +304,9 @@ class Trainer:
         if best_output_dir and store_result:
             self.model.save(best_output_dir)
             print("Best saved at {}".format(best_output_dir))
+            
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         return best_loss, best_model_accuracy, best_epoch
 
     def evaluate(self, neigh_loader, run_config, is_rare=False, kwargs={}):

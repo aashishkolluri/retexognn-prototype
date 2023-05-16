@@ -118,7 +118,7 @@ def train(args):
     if args.no_cuda:
         device = torch.device("cpu")
     else:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device(f"cuda:{args.cuda_id}" if torch.cuda.is_available() else "cpu")
         # Run the train/attack/eval on the selected GPU id
         if torch.cuda.is_available:
             torch.cuda.set_device(args.cuda_id)
@@ -144,7 +144,9 @@ def train(args):
         early_stopping=args.early_stopping,
         diff_nei=args.diff_nei,
         frac=args.frac,
-        hetero=args.hetero
+        hetero=args.hetero,
+        extra_cuda_id=args.extra_cuda_id,
+        big_dataset=args.big_dataset
     )
 
     #generate array of random numbers as seeds if num_seeds > 1 else return [args.sample_seed]
@@ -272,6 +274,10 @@ def main():
     )
     
     parser.add_argument(
+        "--big_dataset", action="store_true", default=False,
+    )
+    
+    parser.add_argument(
         "--feed_hidden_layer", action="store_true", default=False,
     )
     
@@ -289,6 +295,9 @@ def main():
     
     parser.add_argument(
         "--diff_nei", action="store_true", default=False,
+    )
+    parser.add_argument(
+        "--extra_cuda_id", type=int, default=MyGlobals.extra_cuda_id
     )
 
     # Train model commands

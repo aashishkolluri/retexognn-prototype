@@ -53,13 +53,12 @@ class MultiMLPGCN(GeneralMultiMLPModel):
         self.output_size = output_size
         self.model_name = model_name+"_nl_"+str(self.nl)
         self.feed_hidden_layer = feed_hidden_layer
-        num_samples = [25, 25] if sample_neighbors else [-1, -1]
         
         # Initialize the first model
         model = MLP(
             model_name=f"{model_name}_mlp_{self.nl}_{0}",
             input_size=input_size,
-            hidden_size=self.hidden_size,
+            hidden_size=256 if run_config.big_dataset else self.hidden_size,
             output_size=output_size,
             dropout=self.dropout_val,
             num_hidden=self.num_hidden,
