@@ -1,9 +1,6 @@
 import torch
 import torch_geometric
-import dgl
-from torch_geometric.datasets import Planetoid, FacebookPagePage, LastFMAsia, KarateClub, Yelp
-from ogb.nodeproppred import Evaluator, PygNodePropPredDataset, DglNodePropPredDataset
-import torch_geometric.transforms as T
+from torch_geometric.datasets import Planetoid, FacebookPagePage, LastFMAsia, KarateClub
 import numpy as np
 from utils import Dataset
 import os
@@ -119,76 +116,7 @@ class LoadData:
             labels = dataset[0].y
             # get number of nodes
             train_mask, val_mask, test_mask = self._get_masks_fb_page(dataset, 0.9, 0.5)
-            edge_index = dataset[0].edge_index
-        elif self.dataset in [Dataset.OGBNArxiv, Dataset.OGBNProducts]:
-            dataset = PygNodePropPredDataset(name=self.dataset.value)
-            data = dataset[0]
-            features = dataset[0].x
-            labels = dataset[0].y.squeeze()
-            
-            split_idx = dataset.get_idx_split()
-            nnodes = len(labels)
-
-            train_idx = split_idx["train"]
-            train_mask = torch.zeros(nnodes, dtype=torch.bool)
-            train_mask[train_idx] = True
-            
-            val_idx = split_idx["valid"]
-            val_mask = torch.zeros(nnodes, dtype=torch.bool)
-            val_mask[val_idx] = True
-            
-            test_idx = split_idx["test"]
-            test_mask = torch.zeros(nnodes, dtype=torch.bool)
-            test_mask[test_idx] = True
-            edge_index = None                     
-        # elif self.dataset in [Dataset.OGBNProducts]:
-        #     dataset = DglNodePropPredDataset(name=self.dataset.value, root=self.load_dir)
-
-        #     graph, node_labels = dataset[0]
-            
-        #     labels = node_labels.squeeze()
-        #     split_idx = dataset.get_idx_split()
-        #     nnodes = len(labels)
-            
-        #     train_idx = split_idx["train"]
-        #     train_mask = torch.zeros(nnodes, dtype=torch.bool)
-        #     train_mask[train_idx] = True
-            
-        #     val_idx = split_idx["valid"]
-        #     val_mask = torch.zeros(nnodes, dtype=torch.bool)
-        #     val_mask[val_idx] = True
-            
-        #     test_idx = split_idx["test"]
-        #     test_mask = torch.zeros(nnodes, dtype=torch.bool)
-        #     test_mask[test_idx] = True
-            
-        #     graph.ndata['label'] = labels
-        #     graph.ndata['train_mask'] = train_mask
-        #     graph.ndata['val_mask'] = val_mask
-        #     graph.ndata['test_mask'] = test_mask
-            
-        #     features = graph.ndata["feat"]
-        #     edge_index = None
-        elif self.dataset == Dataset.Yelp:
-            dataset = dgl.data.YelpDataset(force_reload=True)
-            graph = dataset[0]
-            
-            features = graph.ndata["feat"]
-            labels = graph.ndata["label"]
-            train_mask = graph.ndata["train_mask"]
-            val_mask = graph.ndata["val_mask"]
-            test_mask = graph.ndata["test_mask"]
-            edge_index = None
-        elif self.dataset == Dataset.DGLCora:
-            dataset = dgl.data.CoraGraphDataset()
-            graph = dataset[0]
-            
-            features = graph.ndata["feat"]
-            labels = graph.ndata["label"]
-            train_mask = graph.ndata["train_mask"]
-            val_mask = graph.ndata["val_mask"]
-            test_mask = graph.ndata["test_mask"]
-            edge_index = None
+            edge_index = dataset[0].edge_index                   
         elif self.dataset == Dataset.LastFM:
             dataset = LastFMAsia(self.load_dir)
             features = dataset[0].x
@@ -214,7 +142,6 @@ class LoadData:
             }
             
             dataset = Planetoid(root=self.load_dir, name=self.dataset.name, split='random', num_train_per_class=num_split[self.dataset.name.lower()][0], num_val=num_split[self.dataset.name.lower()][1], num_test=num_split[self.dataset.name.lower()][2])
-            # dataset = Planetoid(root=self.load_dir, name=self.dataset.name, split='public')
             features = dataset[0].x
             labels = dataset[0].y
             train_mask = dataset[0].train_mask
@@ -246,7 +173,7 @@ class LoadData:
         
         data = dataset[0]
         
-        if self.dataset in [Dataset.OGBNArxiv, Dataset.WikiCooc, Dataset.Roman]:
+        if self.dataset in [Dataset.WikiCooc, Dataset.Roman]:
             orig_edge_index = data.edge_index.clone().detach()
             
             new_edge_index_0 = torch.cat((data.edge_index[0], orig_edge_index[1]), dim=0)
@@ -258,10 +185,7 @@ class LoadData:
             data.n_id = torch.arange(dataset[0].num_nodes) # is not defined for inductive 
         except:
             data.n_id = torch.arange(dataset[0].num_nodes())
-            
-        if self.dataset in [Dataset.OGBNArxiv, Dataset.OGBNProducts]:
-            data.y = data.y.squeeze()
-        
+                    
         self.train_data = data
         self.val_data = data
         self.test_data = data

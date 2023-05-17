@@ -11,11 +11,9 @@ from trainers.general_trainer import RunConfig
 from trainers.gcn_trainer import train_gcn_on_dataset
 from trainers.mlp_trainer import train_mlp_on_dataset
 from trainers.mmlp_trainer import train_mmlp_like_models
-from trainers.mmlp_dgl_trainer import train_mmlp_dgl_like_models
 from trainers.sage_trainer import train_sage_on_dataset
 from trainers.gat_trainer import train_gat_on_dataset
-from trainers.dglsage_trainer import train_dglsage_on_dataset
-from trainers.dglgcn_trainer import train_dglgcn_on_dataset
+
 
 import pickle
 import csv
@@ -80,32 +78,6 @@ def run_training(
             feed_hidden_layer=feed_hidden_layer,
             sample_neighbors=sample_neighbors,
         )
-    elif arch == utils.Architecture.DGLGCN:
-        train_stats = train_dglgcn_on_dataset(
-            run_config,
-            dataset,
-            device,
-            seeds=seeds,
-            sample_neighbors=sample_neighbors
-        )
-    elif arch == utils.Architecture.DGLSAGE:
-        train_stats = train_dglsage_on_dataset(
-            run_config,
-            dataset,
-            device,
-            seeds=seeds,
-            sample_neighbors=sample_neighbors
-        )
-    elif arch in [utils.Architecture.MMLPDGLSAGE, utils.Architecture.MMLPDGLGCN]:
-        train_stats = train_mmlp_dgl_like_models(
-            run_config,
-            dataset,
-            device,
-            arch,
-            seeds=seeds,
-            sample_neighbors=sample_neighbors,
-            feed_hidden_layer=feed_hidden_layer
-        )
     else:
         print("Arch {} not supported".format(arch))
         return None
@@ -145,8 +117,6 @@ def train(args):
         diff_nei=args.diff_nei,
         frac=args.frac,
         hetero=args.hetero,
-        extra_cuda_id=args.extra_cuda_id,
-        big_dataset=args.big_dataset
     )
 
     #generate array of random numbers as seeds if num_seeds > 1 else return [args.sample_seed]
@@ -272,11 +242,6 @@ def main():
     parser.add_argument(
         "--sample_neighbors", action="store_true", default=False,
     )
-    
-    parser.add_argument(
-        "--big_dataset", action="store_true", default=False,
-    )
-    
     parser.add_argument(
         "--feed_hidden_layer", action="store_true", default=False,
     )
@@ -295,9 +260,6 @@ def main():
     
     parser.add_argument(
         "--diff_nei", action="store_true", default=False,
-    )
-    parser.add_argument(
-        "--extra_cuda_id", type=int, default=MyGlobals.extra_cuda_id
     )
 
     # Train model commands

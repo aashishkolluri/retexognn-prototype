@@ -74,7 +74,7 @@ class MultiMLPGAT(GeneralMultiMLPModel):
         model = MLP(
             model_name=f"{model_name}_mlp_{self.nl}_{0}",
             input_size=input_size,
-            hidden_size=256 if run_config.big_dataset else self.hidden_size,
+            hidden_size= self.hidden_size,
             output_size=output_size,
             dropout=self.dropout_val,
             num_hidden=num_hidden,

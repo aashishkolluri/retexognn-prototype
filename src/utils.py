@@ -14,13 +14,9 @@ class Architecture(Enum):
     SimpleMMLP = "simple_mmlp"
     TwoLayerGCN = "2layergcn"
     GCN = "gcn"
-    DGLGCN = "dglgcn"
     MMLPGCN = "mmlp_gcn"
-    MMLPDGLGCN = "mmlp_dglgcn"
     MMLPSAGE = "mmlp_sage"
-    MMLPDGLSAGE = "mmlp_dglsage"
     GraphSAGE = "graphSAGE"
-    DGLSAGE = "dglSAGE"
     GAT = "gat"
     MMLPGAT = "mmlp_gat"
 
@@ -37,10 +33,6 @@ class Dataset(Enum):
     WikiCooc = "wiki-cooc"
     Roman = "roman-empire"
     KarateClub = 'karateclub'
-    OGBNProducts = 'ogbn-products'
-    OGBNArxiv = 'ogbn-arxiv'
-    Yelp = 'yelp'
-    DGLCora = 'dglcora'
 
     def __str__(self):
         return self.value
