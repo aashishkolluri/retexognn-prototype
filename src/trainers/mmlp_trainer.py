@@ -146,6 +146,7 @@ def train_mmlp_like_models(
 
         if run_config.parse_communication_results:
             utils.parse_communication_mmlp(mmlp, dataset)
+            return
                                 
         if run_config.calculate_communication:        
             comm_stats = {}
@@ -191,10 +192,9 @@ def train_mmlp_like_models(
 
         eval_mask = torch.zeros(train_features.size(0), dtype=torch.bool)
         eval_mask[:] = True
-        eval_mask = eval_mask.to('cpu')
         
         eval_loader = NeighborLoader(
-            data_loader.train_data.to('cpu'),
+            data_loader.train_data,
             num_neighbors=num_neighbors,
             batch_size=eval_mask.sum().item(),
             input_nodes=eval_mask, 
@@ -202,7 +202,6 @@ def train_mmlp_like_models(
         
         logits = None
         labels = None
-        model = model.to("cpu")
         for batch in eval_loader:
             model.eval()
             
@@ -340,16 +339,14 @@ def train_mmlp_like_models(
             
             eval_mask = torch.zeros(train_features.size(0), dtype=torch.bool)
             eval_mask[:] = True
-            eval_mask = eval_mask.to("cpu")
             
             eval_loader = NeighborLoader(
-                feat_data.to("cpu"),
+                feat_data,
                 num_neighbors=num_neighbors,
                 batch_size=eval_mask.sum().item(),
                 input_nodes=eval_mask,                
             )
             
-            model1 = model1.to("cpu")
             for batch in eval_loader:
                 model1.eval()
                 
@@ -427,13 +424,12 @@ def train_mmlp_like_models(
 
         data_loader.test_data = data_loader.test_data.to(device, 'x', 'y')
         test_loader = NeighborLoader(
-            data_loader.test_data.to("cpu"),
+            data_loader.test_data,
             num_neighbors=num_neighbors * run_config.nl,
             batch_size=data_loader.test_mask.sum().item(),
-            input_nodes=data_loader.test_mask.to("cpu"),
+            input_nodes=data_loader.test_mask,
         )
         
-        mmlp = mmlp.to("cpu")
         mmlp.prepare_for_fwd()
         total_loss = total_correct = total_examples = total_rare_f1_score = 0
         total_f1_score_0 = total_f1_score_1 = total_f1_score_2 = 0
