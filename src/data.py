@@ -246,7 +246,7 @@ class LoadData:
         
         data = dataset[0]
         
-        if self.dataset in [Dataset.OGBNArxiv, Dataset.OGBNProducts, Dataset.WikiCooc, Dataset.Roman]:
+        if self.dataset in [Dataset.OGBNArxiv, Dataset.WikiCooc, Dataset.Roman]:
             orig_edge_index = data.edge_index.clone().detach()
             
             new_edge_index_0 = torch.cat((data.edge_index[0], orig_edge_index[1]), dim=0)
